@@ -4,6 +4,7 @@ import com.ara27.kongra.domain.KongraRequest;
 import com.ara27.kongra.domain.kong.ACLRequest;
 import com.ara27.kongra.domain.kong.HCOauthRequest;
 import com.ara27.kongra.domain.kong.KongApiCreationRequest;
+import com.ara27.kongra.domain.kong.KongConsumerAclCreationRequest;
 import com.ara27.kongra.service.KongAdminService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -51,6 +52,12 @@ public class KongAdminServiceImpl implements KongAdminService {
     }
 
     @Override
+    public ResponseEntity<String> createConsumerAclPlugin(KongConsumerAclCreationRequest kongConsumerAclCreationRequest, String consumerName) {
+        ResponseEntity responseEntity = restTemplate.exchange(kongAdminUrl + "/consumers" + "/" + consumerName + "/acls", HttpMethod.POST, httpEntity(kongConsumerAclCreationRequest), Map.class);
+        return responseEntity;
+    }
+
+    @Override
     public KongApiCreationRequest constructKongApiCreationRequest(KongraRequest kongraRequest) {
         KongApiCreationRequest kongApiCreationRequest = new KongApiCreationRequest();
         kongApiCreationRequest.setName(kongraRequest.getApiName());
@@ -73,6 +80,12 @@ public class KongAdminServiceImpl implements KongAdminService {
         HCOauthRequest hcOauthRequest = new HCOauthRequest(kongraRequest.getHcProvisionKey());
         hcOauthRequest.setName(HCOAUTH2_PLUGIN_DEFAULT_NAME);
         return hcOauthRequest;
+    }
+
+    @Override
+    public KongConsumerAclCreationRequest constructAclConsumerPluginRequest(KongraRequest kongraRequest) {
+        KongConsumerAclCreationRequest request = new KongConsumerAclCreationRequest(kongraRequest.getApiName());
+        return request;
     }
 
     private HttpEntity httpEntity(Object object) {

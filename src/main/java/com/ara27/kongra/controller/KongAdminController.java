@@ -4,6 +4,7 @@ import com.ara27.kongra.domain.KongraRequest;
 import com.ara27.kongra.domain.kong.ACLRequest;
 import com.ara27.kongra.domain.kong.HCOauthRequest;
 import com.ara27.kongra.domain.kong.KongApiCreationRequest;
+import com.ara27.kongra.domain.kong.KongConsumerAclCreationRequest;
 import com.ara27.kongra.service.KongAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,18 +23,26 @@ public class KongAdminController {
     @PostMapping("/register")
     public ResponseEntity<String> registerApi(@RequestBody KongraRequest kongraRequest) {
         ResponseEntity<String> responseEntityCreateApi = createApi(kongraRequest);
-        if(!responseEntityCreateApi.getStatusCode().is2xxSuccessful()) {
+        if (!isSuccessful(responseEntityCreateApi)) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         ResponseEntity<String> responseEntityCreateAclPlugins = createAclPlugin(kongraRequest);
-        if(!responseEntityCreateAclPlugins.getStatusCode().is2xxSuccessful()) {
+        if (!isSuccessful(responseEntityCreateAclPlugins)) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         ResponseEntity<String> responseEntityCreateHcOauthPlugins = createHcOauthPlugin(kongraRequest);
-        if(!responseEntityCreateHcOauthPlugins.getStatusCode().is2xxSuccessful()) {
+        if (!isSuccessful(responseEntityCreateHcOauthPlugins)) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        ResponseEntity<String> responseEntityCreateAclConsumerPlugin = createAclConsumerPlugin(kongraRequest);
+        if (!isSuccessful(responseEntityCreateAclConsumerPlugin)) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return responseEntityCreateApi;
+    }
+
+    private Boolean isSuccessful(ResponseEntity<String> responseEntity) {
+        return responseEntity.getStatusCode().is2xxSuccessful();
     }
 
     private ResponseEntity<String> createApi(KongraRequest kongraRequest) {
@@ -51,6 +60,12 @@ public class KongAdminController {
     private ResponseEntity<String> createHcOauthPlugin(KongraRequest kongraRequest) {
         HCOauthRequest hcOauthRequest = kongAdminService.constructHcOauthRequest(kongraRequest);
         ResponseEntity<String> responseEntity = kongAdminService.createHcOauthPluginToApi(hcOauthRequest, kongraRequest.getApiName());
+        return responseEntity;
+    }
+
+    private ResponseEntity<String> createAclConsumerPlugin(KongraRequest kongraRequest) {
+        KongConsumerAclCreationRequest request = kongAdminService.constructAclConsumerPluginRequest(kongraRequest);
+        ResponseEntity<String> responseEntity = kongAdminService.createConsumerAclPlugin(request, "my-homecredit-app"); //TODO remove hardcoded later
         return responseEntity;
     }
 }
