@@ -1,10 +1,7 @@
 package com.ara27.kongra.service.impl;
 
 import com.ara27.kongra.domain.KongraRequest;
-import com.ara27.kongra.domain.kong.ACLRequest;
-import com.ara27.kongra.domain.kong.HCOauthRequest;
-import com.ara27.kongra.domain.kong.KongApiCreationRequest;
-import com.ara27.kongra.domain.kong.KongConsumerAclCreationRequest;
+import com.ara27.kongra.domain.kong.*;
 import com.ara27.kongra.service.KongAdminService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -28,8 +25,12 @@ public class KongAdminServiceImpl implements KongAdminService {
     @Value("${kong.upstreamUrl}")
     private String upstreamUrl;
 
+    @Value("${kong.fileLogPathPrefix}")
+    private String fileLogPathPrefix;
+
     public static final String ACL_PLUGIN_DEFAULT_NAME = "acl";
     public static final String HCOAUTH2_PLUGIN_DEFAULT_NAME = "hc-oauth2";
+    public static final String FILELOG_PLUGIN_DEFAULT_NAME = "file-log";
 
     private RestTemplate restTemplate = new RestTemplate();
 
@@ -48,6 +49,12 @@ public class KongAdminServiceImpl implements KongAdminService {
     @Override
     public ResponseEntity<String> createHcOauthPluginToApi(HCOauthRequest hcOauthRequest, String apiName) {
         ResponseEntity responseEntity = restTemplate.exchange(kongAdminUrl + "/apis" + "/" + apiName + "/plugins", HttpMethod.POST, httpEntity(hcOauthRequest), Map.class);
+        return responseEntity;
+    }
+
+    @Override
+    public ResponseEntity<String> createFileLogPluginToApi(FileLogRequest fileLogRequest, String apiName) {
+        ResponseEntity responseEntity = restTemplate.exchange(kongAdminUrl + "/apis" + "/" + apiName + "/plugins", HttpMethod.POST, httpEntity(fileLogRequest), Map.class);
         return responseEntity;
     }
 
@@ -86,6 +93,13 @@ public class KongAdminServiceImpl implements KongAdminService {
     public KongConsumerAclCreationRequest constructAclConsumerPluginRequest(KongraRequest kongraRequest) {
         KongConsumerAclCreationRequest request = new KongConsumerAclCreationRequest(kongraRequest.getApiName());
         return request;
+    }
+
+    @Override
+    public FileLogRequest constructFileLogRequest(KongraRequest kongraRequest) {
+        FileLogRequest fileLogRequest = new FileLogRequest(fileLogPathPrefix + kongraRequest.getApiName() + ".log");
+        fileLogRequest.setName(FILELOG_PLUGIN_DEFAULT_NAME);
+        return fileLogRequest;
     }
 
     private HttpEntity httpEntity(Object object) {

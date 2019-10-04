@@ -1,10 +1,7 @@
 package com.ara27.kongra.controller;
 
 import com.ara27.kongra.domain.KongraRequest;
-import com.ara27.kongra.domain.kong.ACLRequest;
-import com.ara27.kongra.domain.kong.HCOauthRequest;
-import com.ara27.kongra.domain.kong.KongApiCreationRequest;
-import com.ara27.kongra.domain.kong.KongConsumerAclCreationRequest;
+import com.ara27.kongra.domain.kong.*;
 import com.ara27.kongra.service.KongAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +29,10 @@ public class KongAdminController {
         }
         ResponseEntity<String> responseEntityCreateHcOauthPlugins = createHcOauthPlugin(kongraRequest);
         if (!isSuccessful(responseEntityCreateHcOauthPlugins)) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        ResponseEntity<String> responseEntityCreateFileLogPlugins = createFileLogPlugin(kongraRequest);
+        if (!isSuccessful(responseEntityCreateFileLogPlugins)) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         ResponseEntity<String> responseEntityCreateAclConsumerPlugin = createAclConsumerPlugin(kongraRequest);
@@ -66,6 +67,12 @@ public class KongAdminController {
     private ResponseEntity<String> createAclConsumerPlugin(KongraRequest kongraRequest) {
         KongConsumerAclCreationRequest request = kongAdminService.constructAclConsumerPluginRequest(kongraRequest);
         ResponseEntity<String> responseEntity = kongAdminService.createConsumerAclPlugin(request, "my-homecredit-app"); //TODO remove hardcoded later
+        return responseEntity;
+    }
+
+    private ResponseEntity<String> createFileLogPlugin(KongraRequest kongraRequest) {
+        FileLogRequest fileLogRequest = kongAdminService.constructFileLogRequest(kongraRequest);
+        ResponseEntity<String> responseEntity = kongAdminService.createFileLogPluginToApi(fileLogRequest, kongraRequest.getApiName());
         return responseEntity;
     }
 }
